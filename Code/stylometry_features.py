@@ -29,6 +29,7 @@ def extract_metadata(sourcefile):
 def extract_text_features(sourcefile):
 	#pull out features as used by Narayanan et al
 	function_words = open("../Data/function_words.txt", 'r').read().split('\n')
+	fw_colnames = map(lambda x: "fw_{}".format(x), function_words)
 	chars = list(ascii_lowercase)
 	digs = list(digits)
 	punct = list(punctuation)
@@ -39,7 +40,7 @@ def extract_text_features(sourcefile):
 
 	#prepare CSV file to save features to
 	featfile= open(savefile(sourcefile, metadata = False), 'w')
-	fwriter = csv.DictWriter(featfile, fieldnames = othercols + function_words + chars + digs + punct)
+	fwriter = csv.DictWriter(featfile, fieldnames = othercols + fw_colnames + chars + digs + punct)
 	fwriter.writeheader()
 
 	#use tokenizer to get # of characters in each comment
@@ -58,6 +59,7 @@ def extract_text_features(sourcefile):
 			cntr.update(tokenizer.tokenize(comment['body'].lower()))
 			fwords = [word for word in lower_words if word in function_words]
 			cntr.update(fwords)
+			cntr = {"fw_{}".format(key): value for key, value in cntr.items()}
 
 			lencnt = Counter() #count how many words of each length
 			lencnt.update([len(word) for word in words])
