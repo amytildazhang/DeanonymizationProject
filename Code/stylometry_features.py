@@ -17,7 +17,7 @@ def extract_metadata(sourcefile):
 	#make metadata save file CSVwriter
 	metafile = open(savefile(sourcefile, metadata = True), 'w')
 	metacolumns = ['id', 'subreddit_id', 'subreddit', 'author', 'created_utc', 'retrieved_on', 'parent_id', 'score', 'ups', 'downs', 'controversiality', 'gilded', 'edited'] 
-	mwriter = csv.DictWriter(metafile, fieldnames = metacolumns)
+	mwriter = csv.DictWriter(metafile, fieldnames = metacolumns, quoting = csv.QUOTE_ALL)
 	mwriter.writeheader()
 	with bz2.open(sourcefile, 'rt') as f:
 		for line in f:
@@ -32,10 +32,10 @@ def extract_text_features(sourcefile):
 	chars = list(ascii_lowercase)
 	digs = list(digits)
 	punct = list(punctuation)
-	othercols = ['id', 'subreddit_id', 'author', 'length_char', 'length_words', 'yules_k', 
-		'lego_1', 'lego_2', 'lego_3', 'lego_4', 'lego_5', 'lego_6', 'lego_7', 'lego_8', 'lego_9', 'lego_10', 
+	othercols = ['id', 'length_char', 'length_words', 'yules_k', 
+		'lego_1', 'lego_2', 'lego_3', 'lego_4', 'lego_5', 'lego_6', 'lego_7', 'lego_8', 'lego_9', 'lego_10+', 
 		'all_upper', 'all_lower', 'first_upper', 'camel', 'other_case', 'word_1', 'word_2', 'word_3', 'word_4', 'word_5', 'word_6', 'word_7', 'word_8', 'word_9', 'word_10',
-		'word_11', 'word_12', 'word_13', 'word_14', 'word_15', 'word_16', 'word_17', 'word_18', 'word_19', 'word_20'] 
+		'word_11', 'word_12', 'word_13', 'word_14', 'word_15', 'word_16', 'word_17', 'word_18', 'word_19', 'word_20+'] 
 
 	#prepare CSV file to save features to
 	featfile= open(savefile(sourcefile, metadata = False), 'w')
@@ -43,15 +43,15 @@ def extract_text_features(sourcefile):
 	fwriter.writeheader()
 
 	#use tokenizer to get # of characters in each comment
+	#does not include other languages or characters with hats on them, etc.
 	pregex = '[a-z0-9{}]'.format(escape(punctuation))
 	tokenizer = RegexpTokenizer(pregex)
 
 	with bz2.open(sourcefile, 'rt') as f: #line-by-line for RAM purposes
 		for line in f:
-			comment = line.split('\n')[0]  #massage comment into useful forms
-			comment = json.loads(comment)
+			comment = json.loads(line.split('\n')[0])  #massage comment into useful forms
 			words = word_tokenize(comment['body'])
-			words = [word for word in words if word.isalnum()]
+			words = [word for word in words if word.isalnum()] #only include words, not punctuation
 			lower_words = [word.lower() for word in words]
 
 			cntr = Counter() #count character-level tokens and function words
@@ -62,6 +62,7 @@ def extract_text_features(sourcefile):
 			lencnt = Counter() #count how many words of each length
 			lencnt.update([len(word) for word in words])
 			lencnt = {"word_{}".format(key): value for key, value in lencnt.items() if key < 21}
+			lencnt['word_20+'] = len(words) - sum([value for key, value in lencnt.items() if key < 20])
 
 			otherfeat = { #other features that are easily wrapped in single-line operations
 			"length_char": len(comment['body']),
@@ -70,9 +71,7 @@ def extract_text_features(sourcefile):
 			"all_upper": sum(map(lambda x: x.isupper(), words)),
 			"first_upper": sum(map(lambda x: x.istitle(), words)),
 			"camel": sum(map(lambda x: is_camel_case(x), words)),
-			'id': comment['id'],
-			'author': comment['author'],
-			'subreddit_id': comment['subreddit_id']
+			'id': comment['id']
 			}
 			otherfeat["other_case"] = otherfeat["length_words"] - otherfeat["all_upper"] - otherfeat["all_lower"] - otherfeat["camel"]
 
@@ -87,5 +86,6 @@ def extract_text_features(sourcefile):
 						lambda m: legocnt['lego_{}'.format(m)] * (m/len(words))**2 if 'lego_{}'.format(m) in legocnt else 0, 
 						arange(max(timescnt.values())) + 1))) if len(words) > 0 else 0
 			legocnt = {key: value for key, value in legocnt.items() if int(key.split('_')[1]) < 11}
+			legocnt['lego_10+'] = len(timescnt.keys()) - sum([value for key, value in legocnt.items() if int(key.split('_')[1]) < 10])
 
 			fwriter.writerow({**cntr, **lencnt, **otherfeat, **legocnt})
