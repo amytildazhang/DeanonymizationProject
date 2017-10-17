@@ -19,7 +19,7 @@ def extract_metadata(sourcefile, subreddits = None):
 	#make metadata save file CSVwriter
 	metafile = open(savefile(sourcefile, metadata = True), 'w')
 	metacolumns = ['id', 'subreddit_id', 'subreddit', 'author', 'created_utc', 'retrieved_on', 'parent_id', 'score', 'ups', 'downs', 'controversiality', 'gilded', 'edited'] 
-	mwriter = csv.DictWriter(metafile, fieldnames = metacolumns, quoting = csv.QUOTE_ALL)
+	mwriter = csv.DictWriter(metafile, fieldnames = metacolumns)
 	mwriter.writeheader()
 	with bz2.open(sourcefile, 'rt') as f:
 		for line in f:
@@ -28,7 +28,7 @@ def extract_metadata(sourcefile, subreddits = None):
 			if subreddits is not None:
 				if comment['subreddit'].lower() not in subreddits:
 					continue
-			if comment['author'] is "[deleted]":
+			if comment['author'] == "[deleted]":
 				continue
 			mwriter.writerow({key: value for key, value in comment.items() if key in metacolumns})
 
@@ -62,7 +62,7 @@ def extract_text_features(sourcefile, subreddits = None):
 			if subreddits is not None:
 				if comment['subreddit'].lower() not in subreddits:
 					continue
-			if comment['author'] is "[deleted]":
+			if comment['author'] == "[deleted]":
 				continue
 			words = word_tokenize(comment['body'])
 			words = [word for word in words if word.isalnum()] #only include words, not punctuation
