@@ -7,6 +7,7 @@ from numpy import arange
 import bz2
 from collections import Counter
 from re import escape
+import sys
 
 #create path to CSV files, with different names depending on if it is for metadata or not
 def savefile(sourcefile, metadata = False):
@@ -18,7 +19,7 @@ def savefile(sourcefile, metadata = False):
 def extract_metadata(sourcefile, subreddits = None):
 	#make metadata save file CSVwriter
 	metafile = open(savefile(sourcefile, metadata = True), 'w')
-	metacolumns = ['id', 'subreddit_id', 'subreddit', 'author', 'created_utc', 'retrieved_on', 'parent_id', 'score', 'ups', 'downs', 'controversiality', 'gilded', 'edited'] 
+	metacolumns = ['id', 'subreddit_id', 'subreddit', 'author', 'created_utc', 'retrieved_on', 'parent_id', 'score', 'gilded', 'edited'] 
 	mwriter = csv.DictWriter(metafile, fieldnames = metacolumns)
 	mwriter.writeheader()
 	with bz2.open(sourcefile, 'rt') as f:
@@ -36,14 +37,14 @@ def extract_metadata(sourcefile, subreddits = None):
 def extract_text_features(sourcefile, subreddits = None):
 	#create column names for CSV file
 	function_words = open("../Data/function_words.txt", 'r').read().split('\n')
-	fw_colnames = map(lambda x: "fw_{}".format(x), function_words)
+	fw_colnames = list(map(lambda x: "fw_{}".format(x), function_words))
 	chars = list(ascii_lowercase)
 	digs = list(digits)
 	punct = list(punctuation)
 	othercols = ['id', 'author', 'subreddit', 'length_char', 'length_words', 'yules_k', 
-		'lego_1', 'lego_2', 'lego_3', 'lego_4', 'lego_5', 'lego_6', 'lego_7', 'lego_8', 'lego_9', 'lego_10+', 
+		'lego_1', 'lego_2', 'lego_3', 'lego_4', 'lego_5', 'lego_6', 'lego_7', 'lego_8', 'lego_9', 'lego_10p', 
 		'all_upper', 'all_lower', 'first_upper', 'camel', 'other_case', 'word_1', 'word_2', 'word_3', 'word_4', 'word_5', 'word_6', 'word_7', 'word_8', 'word_9', 'word_10',
-		'word_11', 'word_12', 'word_13', 'word_14', 'word_15', 'word_16', 'word_17', 'word_18', 'word_19', 'word_20+'] 
+		'word_11', 'word_12', 'word_13', 'word_14', 'word_15', 'word_16', 'word_17', 'word_18', 'word_19', 'word_20p'] 
 
 	#prepare CSV file to save features to
 	featfile= open(savefile(sourcefile, metadata = False), 'w')
@@ -71,17 +72,18 @@ def extract_text_features(sourcefile, subreddits = None):
 			#count character-level tokens and function words
 			cntr = Counter() 
 			cntr.update(tokenizer.tokenize(comment['body'].lower()))
-			fwords = [word for word in lower_words if word in function_words]
+			fwords = ["fw_{}".format(word) for word in lower_words if word in function_words]
 			cntr.update(fwords)
-			cntr = {"fw_{}".format(key): value for key, value in cntr.items()}
+			rowdict = {key: value for key, value in cntr.items()}
 
 			#count how many words of each length (legomena)
 			lencnt = Counter() 
 			lencnt.update([len(word) for word in words])
-			lencnt = {"word_{}".format(key): value for key, value in lencnt.items() if key < 21}
-			lencnt['word_20+'] = len(words) - sum([value for key, value in lencnt.items() if key < 20])
+			lencnt = {"word_{}".format(key): value for key, value in lencnt.items() if key < 20}
+			lencnt['word_20p'] = len(words) - sum([value for key, value in lencnt.items() if int(key.split("_")[1]) < 20])
+			rowdict.update(lencnt)
 
-			#other features that are easily wrapped in single-line operations
+						#other features that are easily wrapped in single-line operations
 			otherfeat = { 
 			"length_char": len(comment['body']),
 			"length_words": len(words),
@@ -95,26 +97,27 @@ def extract_text_features(sourcefile, subreddits = None):
 			}
 			otherfeat["other_case"] = otherfeat["length_words"] - otherfeat["all_upper"] - otherfeat["all_lower"] - otherfeat["camel"]
 
-			#vocabulary richness features
+						#vocabulary richness features
 			timescnt = Counter() 
 			timescnt.update(lower_words)
 			legocnt = Counter() 
 			legocnt.update(timescnt.values())
 			legocnt = {'lego_{}'.format(key): value for key, value in legocnt.items()}
+			legocnt = {key: value for key, value in legocnt.items() if int(key.split('_')[1]) < 10}
+			legocnt['lego_10p'] = len(timescnt.keys()) - sum([value for key, value in legocnt.items() if int(key.split('_')[1]) < 10])
+			rowdict.update(legocnt)
+
 			otherfeat["yules_k"] = 10**4 * (-1/len(words) + 
 				sum(
 					map(
 						lambda m: legocnt['lego_{}'.format(m)] * (m/len(words))**2 if 'lego_{}'.format(m) in legocnt else 0, 
 						arange(max(timescnt.values())) + 1))) if len(words) > 0 else 0
-			legocnt = {key: value for key, value in legocnt.items() if int(key.split('_')[1]) < 11}
-			legocnt['lego_10+'] = len(timescnt.keys()) - sum([value for key, value in legocnt.items() if int(key.split('_')[1]) < 10])
-
+			rowdict.update(otherfeat)
 			#write row to CSV file
-			fwriter.writerow({**cntr, **lencnt, **otherfeat, **legocnt})
+			# fwriter.writerow({**cntr, **lencnt, **otherfeat, **legocnt}) #for python 3.5 and above
+			fwriter.writerow(rowdict)
 
 
 if __name__ == '__main__':
-	if len(sys.argv) > 2:
-		subreddits = sys.argv[2:]
-	extract_metadata(sys.argv[1], subreddits)
+	subreddits = sys.argv[2:] if len(sys.argv) > 2 else None
 	extract_text_features(sys.argv[1], subreddits)

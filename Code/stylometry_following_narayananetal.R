@@ -4,37 +4,42 @@ library(lubridate)
 library(tidyr)
 library(ggplot2)
 library(binr)
+library(purrr)
+library(magrittr)
 library(here)
 
-file <- "Data/RC_2010-01"
+file <- "Data/RC_2017-02"
 n_authors <- 5000
-#subreddits <- c("NFL", "Patriots", "falcons", "nflstreams")
 #scores are considered reliable if the comment was collected after allowed_gap
 allowed_gap <- 60*60*24*3
-subreddits <- c("AskReddit", "relationship_advice", "atheism", "IAmA", "politics")
-
+main_subreddit <- "nfl"
+options(tibble.print_max = Inf) 
 #------------------------EDA--------------------------------
 metadata <- read_csv(here(paste0(file, "_metadata.csv")),
-                     col_types = "cccciiciiiiil") %>%
-    filter(subreddit %in% subreddits) %>%
+                     col_types = "cccciiciiiiic") %>%
     replace_na(list(edited = TRUE)) %>%
     mutate(
         collection_gap = retrieved_on - created_utc,
-        created_utc = as_datetime(created_utc),
-        score = ifelse(collection_gap > allowed_gap, score, NA)
+        score = ifelse(collection_gap > allowed_gap, score, NA),
+        edited = ifelse(edited == "False", NA, as.numeric(edited)),
+        edited_gap = edited - created_utc,
+        created_utc = as_datetime(created_utc)
     ) 
 
+subreddits <- unique(metadata$subreddit)
 
 #include authors that are in the main subreddit (1st) and at least one of the others
 authors <- metadata %>%
     group_by(author) %>%
     summarise(
-        in_main = subreddits[1] %in% subreddit,
-        in_others = any(subreddits[-1] %in% subreddit),
+        in_main = main_subreddit %in% subreddit,
+        in_others = any(setdiff(subreddits, main_subreddit) %in% subreddit),
+        subreddits = paste(unique(subreddit), collapse = " "),
         n_posts = n()
     ) %>%
     filter(in_main, in_others) %>%
-    arrange(desc(n_posts))
+    arrange(desc(n_posts)) %T>%
+    write_csv(paste0(file, "_shared_authors.csv"))
 
 # 
 # by_subreddit <- metadata %>%
@@ -64,14 +69,12 @@ authors <- metadata %>%
 #     filter(n_posts > 20, n_subreddits > 1) %>%
 #     arrange(desc(avg_posts))
 
-authors <- authors[2:(n_authors + 1),]
 metadata <- filter(metadata, author %in% authors$author)
 
 features <- read_csv(here(paste0(file, "_features.csv"))) %>%
-    filter(id %in% metadata$id) %>%
-    left_join(metadata %>% select(id, subreddit), by = "id")
+    filter(id %in% metadata$id) 
 
-id_cols <- c("id", "subreddit_id", "author", "plot")
+id_cols <- c("id", "subreddit_id", "author", "plot", "subreddit")
 feature_cols <- colnames(features) %>% setdiff(id_cols)
 
 
@@ -80,19 +83,15 @@ feature_cols <- colnames(features) %>% setdiff(id_cols)
 toreplace <- setNames(lapply(vector("list", length(feature_cols)), 
     function(x) x <- 0), feature_cols)
 features <- features %>% 
-    replace_na(toreplace) %>%
-    mutate_at(feature_cols, as.numeric())
-authorsumm <- features %>% 
-    group_by(author) %>%
-    summarise_at(feature_cols, mean, na.rm = TRUE) %>%
-    ungroup()
+    replace_na(toreplace) #%>%
+    # mutate_at(feature_cols, as.numeric)
 
 
 
-plotprob <- 300000/nrow(metadata) #maximum number of points that can reasonably be plotted
+plotprob <- min(300000/nrow(metadata), 1) #maximum number of points that can reasonably be plotted
 cat("% of points that will be plotted is", plotprob, "\n")
 training_set <- features %>% 
-    filter(subreddit %in% subreddits[1]) %>%
+    filter(subreddit %in% main_subreddit) %>%
     group_by(author) %>%
     mutate(
         plot = rbinom(1, n(), plotprob)
@@ -101,10 +100,12 @@ training_set <- features %>%
 
 #select top 20 features by information gain using shannon entropy
 #plot EDA for these, rather htan all 300...
-shannon_bin <- function(ftname, df) {
-    bins <-  bins(df %>% pull(ftname), 20, max.breaks = 20)
-    newdf <- df %>% select_(ftname, "id") %>%
-        arrange_(ftname) %>%
+shannon_bin <- function(ftidx, df) {
+    ft <- as.numeric(df %>% pull(ftidx))
+    if (length(unique(ft)) == 1) return(df %>% select(id, ftidx))
+    bins <-  bins(ft, 20, max.breaks = 20)
+    newdf <- df %>% select(ftidx, id) %>%
+        arrange(df[[ftidx]]) %>%
         mutate(bin = NA) %>%
         select(-1)
     
@@ -115,7 +116,7 @@ shannon_bin <- function(ftname, df) {
         letter <- letter + 1; j <- j + i
     }
 
-    colnames(newdf)[2] <- ftname
+    colnames(newdf)[2] <- colnames(df)[ftidx]
     return(newdf)
 }
 
@@ -125,22 +126,28 @@ shannon_entropy <- function(fct) {
     sum(prob * log(prob))
 }
 
-info_gain <- function(ftname, df) {
-    fctorized <- shannon_bin(ftname, df) %>%
+info_gain <- function(ftidx, df) {
+    fctorized <- shannon_bin(ftidx, df) %>%
         full_join(df %>% select(author, id), by = "id") 
 
-    shannon_entropy(fctorized %>% pull(ftname)) + 
+    shannon_entropy(fctorized %>% pull(2)) + 
     shannon_entropy(fctorized %>% pull(author)) -
-    shannon_entropy(interaction(fctorized %>% pull(ftname), fctorized %>% pull(author)))
+    shannon_entropy(interaction(fctorized %>% pull(2), fctorized %>% pull(author)))
 }
 
 feature_infogain <- tibble(
-    feature = feature_cols,
-    info_gain = map_dbl(feature_cols, function(ftname){
-        print(ftname)
-        info_gain(ftname, training_set)
-        })
-    ) 
+    info_gain = map_dbl(which(colnames(training_set) %in% feature_cols), function(ftidx){
+        print(ftidx)
+        info_gain(ftidx, training_set)
+        }),
+    idx = which(colnames(training_set) %in% feature_cols),
+    feature = feature_cols[idx]
+    )  %>%
+    arrange(info_gain) %T>%
+    write_csv(paste0(file, "_feature_infogain.csv"))
+
+
+
 
 
 
@@ -148,49 +155,58 @@ feature_infogain <- tibble(
 #feature dispersion across all authors
 #feature dispersion within authors across subreddits
 
-i <- 1
-ft <- feature_cols[i]
 
 
 #compare feature distribution across authors
 #provides support that features help distinguish authors
-authorsumm <- authorsumm %>% arrange_(ft) %>% mutate(order = 1:n())
-features <- features %>% 
-    left_join(authorsumm[,c("author", "order")], by = "author")
-
-
-ggplot() +
-    geom_point(data = features, aes_string(x = "order", y = ft),
-               alpha = 0.1, size = 1) +
-    geom_line(data = authorsumm, aes_string(x = "order", y = ft), 
-              color = "#C4A20A", alpha = 0.7, size = 1) +
-    theme_minimal() +
-    labs(title = paste("Distribution of", ft, "across Reddit users"),
-         xlab = "Reddit user id #",
-         ylab = ft) +
-    ggsave(here(paste0("Output/EDA_authors_", ft, ".png")))
-
-
-#compare distribution of features across authors and subreddits
-#provides support that features are topic-independent
-features <- features %>% left_join(metadata[,c("id", "subreddit")], by = "id") 
-subredditsumm <- features %>%
-    group_by(author, subreddit, order) %>%
+authorsumm <- training_set %>% 
+    group_by(author) %>%
     summarise_at(feature_cols, mean, na.rm = TRUE) %>%
     ungroup()
 
-ggplot() +
-    geom_point(data = features, aes_string(x = "order", y = ft),
-               alpha = 0.1, size = 1) +
-    geom_line(data = subredditsumm, aes_string(x = "order", y = ft),
-              color = "#0980B2",  size = 0.8) +
-    geom_line(data = authorsumm, aes_string(x = "order", y = ft),
-              color = "#C4A20A", size = 0.8) +
-    theme_minimal() +
-    labs(title = paste("Distribution of", ft, "across subreddits and users"),
-         xlab = "Reddit user id #",
-         ylab = ft) +
-    facet_grid(subreddit ~ .) +
-    ggsave(here(paste0("Output/EDA_subreddits_", ft, ".png")),
-        height = 10, width = 7, units = "in")
+for (i in 1:20){
+    ft <- feature_infogain$feature[i]
+  
+    authorsumm <- authorsumm %>% arrange_(ft) %>% mutate(order = 1:n())
+    training_set <- training_set %>% 
+        left_join(authorsumm[,c("author", "order")], by = "author")
+
+
+    ggplot() +
+        geom_point(data = training_set, aes_string(x = "order", y = ft),
+                   alpha = 0.1, size = 1) +
+        geom_line(data = authorsumm, aes_string(x = "order", y = ft), 
+                  color = "#C4A20A", alpha = 0.7, size = 1) +
+        theme_minimal() +
+        labs(title = paste("Distribution of", ft, "across Reddit users"),
+                subtitle = "Training set",
+             xlab = "Reddit user id #",
+             ylab = ft) +
+        ggsave(here(paste0("Output/EDA_authors_", ft, ".png")))
+
+
+    #compare distribution of features across authors and subreddits
+    #provides support that features are topic-independent
+    features <- features %>% left_join(authorsumm %>% select(author, order), by = "author")
+    subredditsumm <- features %>%
+        group_by(author, subreddit, order) %>%
+        summarise_at(feature_cols, mean, na.rm = TRUE) %>%
+        ungroup()
+
+    ggplot() +
+        geom_point(data = features, aes_string(x = "order", y = ft),
+                   alpha = 0.1, size = 1) +
+        geom_line(data = subredditsumm, aes_string(x = "order", y = ft),
+                  color = "#0980B2",  size = 0.8) +
+        geom_line(data = authorsumm, aes_string(x = "order", y = ft),
+                  color = "#C4A20A", size = 0.8) +
+        theme_minimal() +
+        labs(title = paste("Distribution of", ft, "across subreddits and users"),
+             xlab = "Reddit user id #",
+             ylab = ft) +
+        facet_grid(subreddit ~ .) +
+        ggsave(here(paste0("Output/EDA_subreddits_", ft, ".png")),
+            height = 10, width = 7, units = "in")
+}
+
 
