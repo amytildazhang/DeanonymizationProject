@@ -8,12 +8,14 @@ import bz2
 from collections import Counter
 from re import escape
 
+#create path to CSV files, with different names depending on if it is for metadata or not
 def savefile(sourcefile, metadata = False):
 	# given source file with reddit comment data, return path to CSV file with stylometry features
 	return sourcefile.replace(".bz2", "_metadata.csv") if metadata else sourcefile.replace(".bz2", "_features.csv")
 
 
-def extract_metadata(sourcefile):
+#pull out useful information that is not in the text and save to a separate CSV file
+def extract_metadata(sourcefile, subreddits = None):
 	#make metadata save file CSVwriter
 	metafile = open(savefile(sourcefile, metadata = True), 'w')
 	metacolumns = ['id', 'subreddit_id', 'subreddit', 'author', 'created_utc', 'retrieved_on', 'parent_id', 'score', 'ups', 'downs', 'controversiality', 'gilded', 'edited'] 
@@ -23,17 +25,22 @@ def extract_metadata(sourcefile):
 		for line in f:
 			comment = line.split('\n')[0] 
 			comment = json.loads(comment)
+			if subreddits is not None:
+				if comment['subreddit'].lower() not in subreddits:
+					continue
+			if comment['author'] is "[deleted]":
+				continue
 			mwriter.writerow({key: value for key, value in comment.items() if key in metacolumns})
 
-
-def extract_text_features(sourcefile):
-	#pull out features as used by Narayanan et al
+#pull out stylometric text features and save to a separate CSV file
+def extract_text_features(sourcefile, subreddits = None):
+	#create column names for CSV file
 	function_words = open("../Data/function_words.txt", 'r').read().split('\n')
 	fw_colnames = map(lambda x: "fw_{}".format(x), function_words)
 	chars = list(ascii_lowercase)
 	digs = list(digits)
 	punct = list(punctuation)
-	othercols = ['id', 'length_char', 'length_words', 'yules_k', 
+	othercols = ['id', 'author', 'subreddit', 'length_char', 'length_words', 'yules_k', 
 		'lego_1', 'lego_2', 'lego_3', 'lego_4', 'lego_5', 'lego_6', 'lego_7', 'lego_8', 'lego_9', 'lego_10+', 
 		'all_upper', 'all_lower', 'first_upper', 'camel', 'other_case', 'word_1', 'word_2', 'word_3', 'word_4', 'word_5', 'word_6', 'word_7', 'word_8', 'word_9', 'word_10',
 		'word_11', 'word_12', 'word_13', 'word_14', 'word_15', 'word_16', 'word_17', 'word_18', 'word_19', 'word_20+'] 
@@ -50,34 +57,46 @@ def extract_text_features(sourcefile):
 
 	with bz2.open(sourcefile, 'rt') as f: #line-by-line for RAM purposes
 		for line in f:
-			comment = json.loads(line.split('\n')[0])  #massage comment into useful forms
+			#massage comment into useful forms
+			comment = json.loads(line.split('\n')[0])  
+			if subreddits is not None:
+				if comment['subreddit'].lower() not in subreddits:
+					continue
+			if comment['author'] is "[deleted]":
+				continue
 			words = word_tokenize(comment['body'])
 			words = [word for word in words if word.isalnum()] #only include words, not punctuation
 			lower_words = [word.lower() for word in words]
 
-			cntr = Counter() #count character-level tokens and function words
+			#count character-level tokens and function words
+			cntr = Counter() 
 			cntr.update(tokenizer.tokenize(comment['body'].lower()))
 			fwords = [word for word in lower_words if word in function_words]
 			cntr.update(fwords)
 			cntr = {"fw_{}".format(key): value for key, value in cntr.items()}
 
-			lencnt = Counter() #count how many words of each length
+			#count how many words of each length (legomena)
+			lencnt = Counter() 
 			lencnt.update([len(word) for word in words])
 			lencnt = {"word_{}".format(key): value for key, value in lencnt.items() if key < 21}
 			lencnt['word_20+'] = len(words) - sum([value for key, value in lencnt.items() if key < 20])
 
-			otherfeat = { #other features that are easily wrapped in single-line operations
+			#other features that are easily wrapped in single-line operations
+			otherfeat = { 
 			"length_char": len(comment['body']),
 			"length_words": len(words),
 			"all_lower": sum(map(lambda x: x.islower(), words)),
 			"all_upper": sum(map(lambda x: x.isupper(), words)),
 			"first_upper": sum(map(lambda x: x.istitle(), words)),
 			"camel": sum(map(lambda x: is_camel_case(x), words)),
-			'id': comment['id']
+			'id': comment['id'],
+			'author': comment['author'],
+			'subreddit': comment['subreddit']
 			}
 			otherfeat["other_case"] = otherfeat["length_words"] - otherfeat["all_upper"] - otherfeat["all_lower"] - otherfeat["camel"]
 
-			timescnt = Counter() #vocabulary richness features
+			#vocabulary richness features
+			timescnt = Counter() 
 			timescnt.update(lower_words)
 			legocnt = Counter() 
 			legocnt.update(timescnt.values())
@@ -90,4 +109,12 @@ def extract_text_features(sourcefile):
 			legocnt = {key: value for key, value in legocnt.items() if int(key.split('_')[1]) < 11}
 			legocnt['lego_10+'] = len(timescnt.keys()) - sum([value for key, value in legocnt.items() if int(key.split('_')[1]) < 10])
 
+			#write row to CSV file
 			fwriter.writerow({**cntr, **lencnt, **otherfeat, **legocnt})
+
+
+if __name__ == '__main__':
+	if len(sys.argv) > 2:
+		subreddits = sys.argv[2:]
+	extract_metadata(sys.argv[1], subreddits)
+	extract_text_features(sys.argv[1], subreddits)

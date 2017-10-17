@@ -76,12 +76,12 @@ feature_cols <- colnames(features) %>% setdiff(id_cols)
 
 
 
-
 #replace all NAs in feature_cols with 0s
 toreplace <- setNames(lapply(vector("list", length(feature_cols)), 
     function(x) x <- 0), feature_cols)
 features <- features %>% 
-    replace_na(toreplace)
+    replace_na(toreplace) %>%
+    mutate_at(feature_cols, as.numeric())
 authorsumm <- features %>% 
     group_by(author) %>%
     summarise_at(feature_cols, mean, na.rm = TRUE) %>%
@@ -127,8 +127,7 @@ shannon_entropy <- function(fct) {
 
 info_gain <- function(ftname, df) {
     fctorized <- shannon_bin(ftname, df) %>%
-        full_join(df %>% select(author, id), by = "id") %>%
-        mutate(joint = interaction(2, 3))
+        full_join(df %>% select(author, id), by = "id") 
 
     shannon_entropy(fctorized %>% pull(ftname)) + 
     shannon_entropy(fctorized %>% pull(author)) -
@@ -137,9 +136,12 @@ info_gain <- function(ftname, df) {
 
 feature_infogain <- tibble(
     feature = feature_cols,
-    info_gain = map_dbl(feature_cols, function(ftname) info_gain(ftname, training_set))
-    ) %>%
-    arrange(desc(info_gain))
+    info_gain = map_dbl(feature_cols, function(ftname){
+        print(ftname)
+        info_gain(ftname, training_set)
+        })
+    ) 
+
 
 
 #loop through and plot EDA (for top 20 and bottom 20?)
