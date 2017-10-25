@@ -36,7 +36,7 @@ def extract_metadata(sourcefile, subreddits = None):
 #pull out stylometric text features and save to a separate CSV file
 def extract_text_features(sourcefile, subreddits = None):
 	#create column names for CSV file
-	function_words = open("../Data/function_words.txt", 'r').read().split('\n')
+	function_words = set(open("../Data/function_words.txt", 'r').read().split('\n'))
 	fw_colnames = list(map(lambda x: "fw_{}".format(x), function_words))
 	chars = list(ascii_lowercase)
 	digs = list(digits)
@@ -120,4 +120,5 @@ def extract_text_features(sourcefile, subreddits = None):
 
 if __name__ == '__main__':
 	subreddits = sys.argv[2:] if len(sys.argv) > 2 else None
+	extract_metadata(sys.argv[1], subreddits)
 	extract_text_features(sys.argv[1], subreddits)
