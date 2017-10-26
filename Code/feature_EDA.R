@@ -127,7 +127,7 @@ shannon_bin <- function(ftidx, df) {
 shannon_entropy <- function(fct) {
     occurrence <- table(fct) + .01
     prob <- occurrence/sum(occurrence)
-    sum(prob * log(prob))
+    - sum(prob * log2(prob))
 }
 
 #Takes: Dataframe and the column index of the feature of interest within the dataframe
@@ -152,7 +152,7 @@ feature_infogain <- tibble(
     feature = feature_cols[idx],
     n_unique = map_dbl(idx, function(ftidx) features %>% pull(ftidx) %>% unique %>% length)
     )  %>%
-    arrange(info_gain) %T>%
+    arrange(desc(info_gain)) %T>%
     write_csv(paste0(file, "_feature_infogain.csv"))
 
 
