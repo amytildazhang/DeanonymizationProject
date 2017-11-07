@@ -11,6 +11,7 @@ import sys
 
 #create path to CSV files, with different names depending on if it is for metadata or not
 def savefile(sourcefile, metadata = False):
+	sourcefile = sourcefile.replace("../Data/", "../../../../work/akz5056/502_Project/Data")
 	# given source file with reddit comment data, return path to CSV file with stylometry features
 	return sourcefile.replace(".bz2", "_metadata.csv") if metadata else sourcefile.replace(".bz2", "_features.csv")
 
@@ -19,7 +20,7 @@ def savefile(sourcefile, metadata = False):
 def extract_metadata(sourcefile, subreddits = None):
 	#make metadata save file CSVwriter
 	metafile = open(savefile(sourcefile, metadata = True), 'w')
-	metacolumns = ['id', 'subreddit_id', 'subreddit', 'author', 'created_utc', 'retrieved_on', 'parent_id', 'score', 'gilded', 'edited'] 
+	metacolumns = ['id', 'subreddit_id', 'subreddit', 'author', 'created_utc', 'score', 'gilded', 'edit_time'] 
 	mwriter = csv.DictWriter(metafile, fieldnames = metacolumns)
 	mwriter.writeheader()
 	with bz2.open(sourcefile, 'rt') as f:
@@ -29,9 +30,11 @@ def extract_metadata(sourcefile, subreddits = None):
 			if subreddits is not None:
 				if comment['subreddit'].lower() not in subreddits:
 					continue
-			if comment['author'] == "[deleted]":
+			if comment['author'] == "[deleted]" or comment['body'] == "[deleted]":
 				continue
-			mwriter.writerow({key: value for key, value in comment.items() if key in metacolumns})
+			row = {key: value for key, value in comment.items() if key in metacolumns}.update({
+				'edit_time': comment['edited'] - comment['created_utc'] if comment['edited'] else 0})
+			mwriter.writerow(row)
 
 #pull out stylometric text features and save to a separate CSV file
 def extract_text_features(sourcefile, subreddits = None):
