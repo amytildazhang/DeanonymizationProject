@@ -1,4 +1,4 @@
-import json
+:import json
 import csv
 from nltk.tokenize import RegexpTokenizer, word_tokenize
 from string import ascii_lowercase, digits, punctuation
@@ -11,7 +11,7 @@ import sys
 
 #create path to CSV files, with different names depending on if it is for metadata or not
 def savefile(sourcefile, metadata = False):
-	sourcefile = sourcefile.replace("../Data/", "../../../../work/akz5056/502_Project/Data")
+#	sourcefile = sourcefile.replace("../Data/", "../../../../work/akz5056/502_Project/Data")
 	# given source file with reddit comment data, return path to CSV file with stylometry features
 	return sourcefile.replace(".bz2", "_metadata.csv") if metadata else sourcefile.replace(".bz2", "_features.csv")
 
