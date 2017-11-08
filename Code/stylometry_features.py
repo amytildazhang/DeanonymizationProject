@@ -34,6 +34,8 @@ def extract_metadata(sourcefile, subreddits = None):
 				continue
 			row = {key: value for key, value in comment.items() if key in metacolumns}.update({
 				'edit_time': comment['edited'] - comment['created_utc'] if comment['edited'] else 0})
+			if not row:
+				continue
 			mwriter.writerow(row)
 
 #pull out stylometric text features and save to a separate CSV file
