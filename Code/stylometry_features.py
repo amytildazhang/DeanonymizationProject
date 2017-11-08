@@ -1,4 +1,4 @@
-:import json
+import json
 import csv
 from nltk.tokenize import RegexpTokenizer, word_tokenize
 from string import ascii_lowercase, digits, punctuation
