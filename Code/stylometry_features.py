@@ -30,10 +30,10 @@ def extract_metadata(sourcefile, subreddits = None):
 			if subreddits is not None:
 				if comment['subreddit'].lower() not in subreddits:
 					continue
-			if comment['author'] == "[deleted]" or comment['body'] == "[deleted]":
+			if comment['author'] in ["[deleted]", "AutoModerator"] or comment['body'] == "[deleted]":
 				continue
-			row = {key: value for key, value in comment.items() if key in metacolumns}.update({
-				'edit_time': comment['edited'] - comment['created_utc'] if comment['edited'] else 0})
+			row = {key: value for key, value in comment.items() if key in metacolumns}
+			row['edit_time'] = comment['edited'] - comment['created_utc'] if comment['edited'] else ''
 			if not row:
 				continue
 			mwriter.writerow(row)
