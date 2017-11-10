@@ -152,12 +152,12 @@ wq <- quantile(total_words$n_words,
 #randomly select 5000 authors with total words between 600 and 700
 total_words %>% filter(n_words >= 600, n_words <= 700) %>%
     sample_n(5000) %>%
-    write_csv("../Data/500-600words_5000authors.csv")
+    write_csv("../Data/600-700words_5000authors.csv")
 
 #train on 1000-1500 words?
 total_words %>% filter(n_words >= 1200, n_words <= 1700) %>%
     sample_n(5000) %>%
-    write_csv("../Data/1000-1500words_5000authors.csv")
+    write_csv("../Data/1200-1700words_5000authors.csv")
 
 
 total_words %>% filter(n_words >= 4000, n_words <= 8000) %>%
@@ -166,3 +166,17 @@ total_words %>% filter(n_words >= 4000, n_words <= 8000) %>%
 
 
 #slice across authors
+authors50 <- total_words %>% 
+    filter(n_words >= 1200, n_words <= 1700) %>%
+    sample_n(50) %T>%
+    write_csv("../Data/50authors.csv")
+
+
+total_words %>% 
+    sample_n(5000) %>%
+    write_csv("../Data/5000authors.csv")
+
+
+total_words %>% 
+    write_csv("../Data/all_authors.csv")
+
