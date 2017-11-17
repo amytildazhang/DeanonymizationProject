@@ -154,6 +154,7 @@ wq <- quantile(total_words$n_words,
                          0.93, 0.94, 0.95, 0.96, 0.97, 0.98, 0.99, 0.995,
                          0.997, 1))
 
+set.seed(1117)
 #randomly select 5000 authors with total words between 600 and 700
 total_words %>% filter(n_words >= 600, n_words <= 700) %>%
     sample_n(5000) %>%
