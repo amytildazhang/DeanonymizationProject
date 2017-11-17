@@ -2,13 +2,18 @@ library(tidyverse)
 library(data.table)
 library(magrittr)
 
+
+known_bots <- read_csv("../Data/bot_list.csv") %>% pull(Username)
+
+
 file <- "../Data/RC_2017-02"
 metadata <- read_csv(paste0(file, "_metadata.csv")) %>% #get metadata
     #join with word length feature
     full_join(fread(paste0(file, "_features.csv"), sep = ",", header = T,
                     select = c("id", "length_words"), stringsAsFactors = F),
               by = c("id")) %>%
-    filter(!is.na(subreddit))
+    filter(!is.na(subreddit), !(author %in% known_bots))
+
 
 set1 <- c("AskReddit", "The_Donald")
 set2 <- c("worldnews", "news")
