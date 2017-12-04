@@ -1,4 +1,5 @@
 library(readr)
+library(data.table)
 library(dplyr)
 library(lubridate)
 library(tidyr)
@@ -13,10 +14,14 @@ folder <- "../Data/"
 #scores are considered reliable if the comment was collected after allowed_gap
 options(tibble.print_max = Inf) 
 #------------------------EDA--------------------------------
-metadata <- read_csv(paste0(folder, file, "_metadata.csv"),
-                     col_types = "cccciiciiiiic") 
 
-subreddits <- unique(metadata$subreddit)
+
+
+features <- do.call("rbind", lapply(1:3, function(set) {
+    read_csv(paste0("../Data/RC_2017-02_combinedFeaturesSubset", set, ".csv")) #%>%
+    # filter(id %in% metadata$id) %>%
+    # inner_join(metadata, by = c("id", "author", "subreddit"))
+}))
 
 #include authors that are in the main subreddit (1st) and at least one of the others
 # authors <- metadata %>%
@@ -64,7 +69,7 @@ subreddits <- unique(metadata$subreddit)
 features <- read_csv(paste0(folder, file, "_features.csv")) %>%
     filter(id %in% metadata$id) 
 
-id_cols <- c("id", "subreddit_id", "author", "plot", "subreddit")
+id_cols <- c("id", "subreddit_id", "author", "plot", "subreddit", "V1")
 feature_cols <- colnames(features) %>% setdiff(id_cols)
 
 
@@ -138,19 +143,27 @@ cat("Calculating information gain of feature in column 'x' of the training subre
 #calculate information gain for all columns specified as feature_cols, save as CSV file 
 feature_infogain <- tibble(
     idx = which(colnames(features) %in% feature_cols),
-    info_gain = map_dbl(idx, function(ftidx) info_gain(ftidx, features)),
+    info_gain = map_dbl(idx, function(ftidx) {
+        print(ftidx)
+        info_gain(ftidx, features)
+        }),
     feature = feature_cols[idx],
     n_unique = map_dbl(idx, function(ftidx) features %>% pull(ftidx) %>% unique %>% length)
     )  %>%
-    arrange(desc(info_gain)) %T>%
+    arrange(desc(info_gain)) 
+
+feature_infogain %>%
     write_csv(paste0("../Output/Feature Infogain/", file, "_feature_infogain.csv"))
 
 
 
-
-
-
-
+for (file in list.files(".")) {
+  authors <- fread(file, select = "author")
+  authors <- authors$author
+   print(paste("filename:", file))
+   print(paste("# authors:", length(unique(authors))))
+   print(paste("# rows:", length(authors)))
+}
 # 
 # #------------------------------EDA
 # #compare feature distribution across authors, and across subreddits

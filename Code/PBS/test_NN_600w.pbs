@@ -1,0 +1,12 @@
+#!/bin/bash
+#PBS -l nodes=1:ppn=1
+#PBS -l walltime=24:00:00
+#PBS -l mem=20gb
+#PBS -M akz5056@psu.edu
+#PBS -m abe
+#PBS -A open
+
+cd $PBS_O_WORKDIR
+cd ..
+module load r/3.4
+Rscript stylometry_test.R 0 RC_600w_subset.csv 250 1
