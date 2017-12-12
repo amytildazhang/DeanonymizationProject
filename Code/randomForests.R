@@ -8,7 +8,6 @@ library(fifer)
 
 
 ##Read in subset of 50 authors
-setwd("C:\\Users\\m_pis\\Documents\\502Subsets")
 
 df=fread("RC_50a-250p_subset.csv")
 names="id"
@@ -17,7 +16,6 @@ df=subset(df, select=names)
 
 names150=c("author","id","lego_2","i","x","lego_3","word_1","s","e","m","r","lego_5","w","v","l","word_7","word_8","p","word_6","phr_(SINV FRAG)","h","pos_DT","y","phr_(NP DT)","lego_4","word_2","q","g","pos_LS","phr_(S VP)","X..16","word_3","word_9","X2","k","pos_JJ","phr_(NP JJ)","X0","pos_EX","phr_(NP EX)","t","phr_(PP NNS)","pos_SYM","j","phr_(PP WHNP)","phr_(VP UCP)","word_10","lego_6","pos_MD","f","word_11","word_5","pos_VBP","phr_(VP VBP)","pos_POS","phr_(VP WHNP)","o","phr_(NP POS)","z","phr_(ADVP SYM)","phr_(NP NNS)","pos_WP$","phr_(WHADJP WP)","word_12","fw_very","X..14","X..10","pos_WRB","phr_(WHADJP WRB)","pos_FW","other_case","phr_(NP RRC)","pos_PRP$","phr_(NP PRP$)","phr_(VP NP)","pos_VBG","word_13","fw_haven.t","fw_mine","phr_(ADJP NNP)","pos_VBZ","pos_WDT","phr_(VP VBZ)","fw_whose","phr_(WHADJP JJ)","lego_7","fw_on","pos_RP","phr_(VP VBG)","phr_(NP RP)","fw_.re","pos_WP","word_14","phr_(VP INTJ)","pos_PDT","fw_together","phr_(VP POS)","phr_(WHADJP RB)","phr_(VP VB)","fw_in","fw_after","fw_yet","phr_(S NP)","pos_IN","phr_(NP IN)","n","lego_8","phr_(NP FW)","fw_them","phr_(S FRAG)","phr_(PP VBN)","phr_(ADJP SYM)","fw_by","X..23","phr_(VP LS)","word_15","fw_when","X1","fw_until","fw_the","fw_before","fw_ever","fw_inside","fw_was","fw_mayn.t","fw_here","fw_always","phr_(S ADVP)","fw_about","pos_VB","phr_(WHADJP ADJP)","phr_(NP INTJ)","phr_(X CC)","phr_(QP CD)","pos_NNS","phr_(S ADJP)","X..15","fw_itself","word_4","fw_perhaps","phr_(NP SYM)","X..4","X..5","phr_(X NN)","fw_wouldn.t","phr_(NX PP)","phr_(FRAG WHADJP)","fw_yourself","phr_(ADVP ADJP)","X..12","fw_though","fw_down")
 
-setwd("C:\\Users\\m_pis\\Documents\\Parsed data")
 
 ##Dataframe at a time merge with the author list
 dfMain=fread("RC_2017-02_combinedFeaturesSubset1.csv")
@@ -94,16 +92,12 @@ for(i in 1:nrow(dfOut)){
   if(length(which(grepl(auth, small$auth)))==0){dfOut$rank[i]=NA} else {dfOut$rank[i]=which(grepl(auth, small$auth))}}
 
 
-
-setwd("C:\\Users\\m_pis\\Documents\\SoDA502results")
-
 write.csv(dfOut,file="subset50-250p.csv")
 
 
 
 
 ##Read in subset of 600 authors
-setwd("C:\\Users\\m_pis\\Documents\\502Subsets")
 
 df=fread("RC_600w_subset.csv")
 names="id"
@@ -112,7 +106,6 @@ df=subset(df, select=names)
 
 names150=c("author","id","lego_2","i","x","lego_3","word_1","s","e","m","r","lego_5","w","v","l","word_7","word_8","p","word_6","phr_(SINV FRAG)","h","pos_DT","y","phr_(NP DT)","lego_4","word_2","q","g","pos_LS","phr_(S VP)","X..16","word_3","word_9","X2","k","pos_JJ","phr_(NP JJ)","X0","pos_EX","phr_(NP EX)","t","phr_(PP NNS)","pos_SYM","j","phr_(PP WHNP)","phr_(VP UCP)","word_10","lego_6","pos_MD","f","word_11","word_5","pos_VBP","phr_(VP VBP)","pos_POS","phr_(VP WHNP)","o","phr_(NP POS)","z","phr_(ADVP SYM)","phr_(NP NNS)","pos_WP$","phr_(WHADJP WP)","word_12","fw_very","X..14","X..10","pos_WRB","phr_(WHADJP WRB)","pos_FW","other_case","phr_(NP RRC)","pos_PRP$","phr_(NP PRP$)","phr_(VP NP)","pos_VBG","word_13","fw_haven.t","fw_mine","phr_(ADJP NNP)","pos_VBZ","pos_WDT","phr_(VP VBZ)","fw_whose","phr_(WHADJP JJ)","lego_7","fw_on","pos_RP","phr_(VP VBG)","phr_(NP RP)","fw_.re","pos_WP","word_14","phr_(VP INTJ)","pos_PDT","fw_together","phr_(VP POS)","phr_(WHADJP RB)","phr_(VP VB)","fw_in","fw_after","fw_yet","phr_(S NP)","pos_IN","phr_(NP IN)","n","lego_8","phr_(NP FW)","fw_them","phr_(S FRAG)","phr_(PP VBN)","phr_(ADJP SYM)","fw_by","X..23","phr_(VP LS)","word_15","fw_when","X1","fw_until","fw_the","fw_before","fw_ever","fw_inside","fw_was","fw_mayn.t","fw_here","fw_always","phr_(S ADVP)","fw_about","pos_VB","phr_(WHADJP ADJP)","phr_(NP INTJ)","phr_(X CC)","phr_(QP CD)","pos_NNS","phr_(S ADJP)","X..15","fw_itself","word_4","fw_perhaps","phr_(NP SYM)","X..4","X..5","phr_(X NN)","fw_wouldn.t","phr_(NX PP)","phr_(FRAG WHADJP)","fw_yourself","phr_(ADVP ADJP)","X..12","fw_though","fw_down")
 
-setwd("C:\\Users\\m_pis\\Documents\\Parsed data")
 
 ##Dataframe at a time merge with the author list
 dfMain=fread("RC_2017-02_combinedFeaturesSubset1.csv")
@@ -185,16 +178,12 @@ for(i in 1:nrow(dfOut)){
   dfOut$rank[i]=if(length(which(grepl(auth, small$auth)))==0){dfOut$rank[i]=NA} else {dfOut$rank[i]=which(grepl(auth, small$auth))}}
 
 
-
-setwd("C:\\Users\\m_pis\\Documents\\SoDA502results")
-
 write.csv(dfOut,file="RC_600w_rf.csv")
 
 
 
 
 ##Read in subset of 1500 authors
-setwd("C:\\Users\\m_pis\\Documents\\502Subsets")
 
 df=fread("RC_1500w_subset.csv")
 names="id"
@@ -203,7 +192,6 @@ df=subset(df, select=names)
 
 names150=c("author","id","lego_2","i","x","lego_3","word_1","s","e","m","r","lego_5","w","v","l","word_7","word_8","p","word_6","phr_(SINV FRAG)","h","pos_DT","y","phr_(NP DT)","lego_4","word_2","q","g","pos_LS","phr_(S VP)","X..16","word_3","word_9","X2","k","pos_JJ","phr_(NP JJ)","X0","pos_EX","phr_(NP EX)","t","phr_(PP NNS)","pos_SYM","j","phr_(PP WHNP)","phr_(VP UCP)","word_10","lego_6","pos_MD","f","word_11","word_5","pos_VBP","phr_(VP VBP)","pos_POS","phr_(VP WHNP)","o","phr_(NP POS)","z","phr_(ADVP SYM)","phr_(NP NNS)","pos_WP$","phr_(WHADJP WP)","word_12","fw_very","X..14","X..10","pos_WRB","phr_(WHADJP WRB)","pos_FW","other_case","phr_(NP RRC)","pos_PRP$","phr_(NP PRP$)","phr_(VP NP)","pos_VBG","word_13","fw_haven.t","fw_mine","phr_(ADJP NNP)","pos_VBZ","pos_WDT","phr_(VP VBZ)","fw_whose","phr_(WHADJP JJ)","lego_7","fw_on","pos_RP","phr_(VP VBG)","phr_(NP RP)","fw_.re","pos_WP","word_14","phr_(VP INTJ)","pos_PDT","fw_together","phr_(VP POS)","phr_(WHADJP RB)","phr_(VP VB)","fw_in","fw_after","fw_yet","phr_(S NP)","pos_IN","phr_(NP IN)","n","lego_8","phr_(NP FW)","fw_them","phr_(S FRAG)","phr_(PP VBN)","phr_(ADJP SYM)","fw_by","X..23","phr_(VP LS)","word_15","fw_when","X1","fw_until","fw_the","fw_before","fw_ever","fw_inside","fw_was","fw_mayn.t","fw_here","fw_always","phr_(S ADVP)","fw_about","pos_VB","phr_(WHADJP ADJP)","phr_(NP INTJ)","phr_(X CC)","phr_(QP CD)","pos_NNS","phr_(S ADJP)","X..15","fw_itself","word_4","fw_perhaps","phr_(NP SYM)","X..4","X..5","phr_(X NN)","fw_wouldn.t","phr_(NX PP)","phr_(FRAG WHADJP)","fw_yourself","phr_(ADVP ADJP)","X..12","fw_though","fw_down")
 
-setwd("C:\\Users\\m_pis\\Documents\\Parsed data")
 
 ##Dataframe at a time merge with the author list
 dfMain=fread("RC_2017-02_combinedFeaturesSubset1.csv")
@@ -308,8 +296,6 @@ for(i in 20001:nrow(ho_set)){
   j=j+1}
 
 
-setwd("C:\\Users\\m_pis\\Documents\\SoDA502results")
-
 write.csv(dfOut,file="RC_1500w_rf.csv")
 
 
@@ -318,7 +304,6 @@ write.csv(dfOut,file="RC_1500w_rf.csv")
 
 
 ##Read in subset of 5000 authors
-setwd("C:\\Users\\m_pis\\Documents\\502Subsets")
 
 df=fread("RC_5000a_subset.csv")
 names="id"
@@ -327,7 +312,6 @@ df=subset(df, select=names)
 
 names150=c("author","id","lego_2","i","x","lego_3","word_1","s","e","m","r","lego_5","w","v","l","word_7","word_8","p","word_6","phr_(SINV FRAG)","h","pos_DT","y","phr_(NP DT)","lego_4","word_2","q","g","pos_LS","phr_(S VP)","X..16","word_3","word_9","X2","k","pos_JJ","phr_(NP JJ)","X0","pos_EX","phr_(NP EX)","t","phr_(PP NNS)","pos_SYM","j","phr_(PP WHNP)","phr_(VP UCP)","word_10","lego_6","pos_MD","f","word_11","word_5","pos_VBP","phr_(VP VBP)","pos_POS","phr_(VP WHNP)","o","phr_(NP POS)","z","phr_(ADVP SYM)","phr_(NP NNS)","pos_WP$","phr_(WHADJP WP)","word_12","fw_very","X..14","X..10","pos_WRB","phr_(WHADJP WRB)","pos_FW","other_case","phr_(NP RRC)","pos_PRP$","phr_(NP PRP$)","phr_(VP NP)","pos_VBG","word_13","fw_haven.t","fw_mine","phr_(ADJP NNP)","pos_VBZ","pos_WDT","phr_(VP VBZ)","fw_whose","phr_(WHADJP JJ)","lego_7","fw_on","pos_RP","phr_(VP VBG)","phr_(NP RP)","fw_.re","pos_WP","word_14","phr_(VP INTJ)","pos_PDT","fw_together","phr_(VP POS)","phr_(WHADJP RB)","phr_(VP VB)","fw_in","fw_after","fw_yet","phr_(S NP)","pos_IN","phr_(NP IN)","n","lego_8","phr_(NP FW)","fw_them","phr_(S FRAG)","phr_(PP VBN)","phr_(ADJP SYM)","fw_by","X..23","phr_(VP LS)","word_15","fw_when","X1","fw_until","fw_the","fw_before","fw_ever","fw_inside","fw_was","fw_mayn.t","fw_here","fw_always","phr_(S ADVP)","fw_about","pos_VB","phr_(WHADJP ADJP)","phr_(NP INTJ)","phr_(X CC)","phr_(QP CD)","pos_NNS","phr_(S ADJP)","X..15","fw_itself","word_4","fw_perhaps","phr_(NP SYM)","X..4","X..5","phr_(X NN)","fw_wouldn.t","phr_(NX PP)","phr_(FRAG WHADJP)","fw_yourself","phr_(ADVP ADJP)","X..12","fw_though","fw_down")
 
-setwd("C:\\Users\\m_pis\\Documents\\Parsed data")
 
 ##Dataframe at a time merge with the author list
 dfMain=fread("RC_2017-02_combinedFeaturesSubset1.csv")
@@ -433,8 +417,6 @@ for(i in 20001:nrow(ho_set)){
   j=j+1}
 
 
-setwd("C:\\Users\\m_pis\\Documents\\SoDA502results")
-
 write.csv(dfOut,file="subset5000a.csv")
 
 
@@ -442,7 +424,6 @@ write.csv(dfOut,file="subset5000a.csv")
 
 
 ##Read in subset of 5000 words
-setwd("C:\\Users\\m_pis\\Documents\\502Subsets")
 
 df=fread("RC_5000w_subset.csv")
 names="id"
@@ -451,7 +432,6 @@ df=subset(df, select=names)
 
 names150=c("author","id","lego_2","i","x","lego_3","word_1","s","e","m","r","lego_5","w","v","l","word_7","word_8","p","word_6","phr_(SINV FRAG)","h","pos_DT","y","phr_(NP DT)","lego_4","word_2","q","g","pos_LS","phr_(S VP)","X..16","word_3","word_9","X2","k","pos_JJ","phr_(NP JJ)","X0","pos_EX","phr_(NP EX)","t","phr_(PP NNS)","pos_SYM","j","phr_(PP WHNP)","phr_(VP UCP)","word_10","lego_6","pos_MD","f","word_11","word_5","pos_VBP","phr_(VP VBP)","pos_POS","phr_(VP WHNP)","o","phr_(NP POS)","z","phr_(ADVP SYM)","phr_(NP NNS)","pos_WP$","phr_(WHADJP WP)","word_12","fw_very","X..14","X..10","pos_WRB","phr_(WHADJP WRB)","pos_FW","other_case","phr_(NP RRC)","pos_PRP$","phr_(NP PRP$)","phr_(VP NP)","pos_VBG","word_13","fw_haven.t","fw_mine","phr_(ADJP NNP)","pos_VBZ","pos_WDT","phr_(VP VBZ)","fw_whose","phr_(WHADJP JJ)","lego_7","fw_on","pos_RP","phr_(VP VBG)","phr_(NP RP)","fw_.re","pos_WP","word_14","phr_(VP INTJ)","pos_PDT","fw_together","phr_(VP POS)","phr_(WHADJP RB)","phr_(VP VB)","fw_in","fw_after","fw_yet","phr_(S NP)","pos_IN","phr_(NP IN)","n","lego_8","phr_(NP FW)","fw_them","phr_(S FRAG)","phr_(PP VBN)","phr_(ADJP SYM)","fw_by","X..23","phr_(VP LS)","word_15","fw_when","X1","fw_until","fw_the","fw_before","fw_ever","fw_inside","fw_was","fw_mayn.t","fw_here","fw_always","phr_(S ADVP)","fw_about","pos_VB","phr_(WHADJP ADJP)","phr_(NP INTJ)","phr_(X CC)","phr_(QP CD)","pos_NNS","phr_(S ADJP)","X..15","fw_itself","word_4","fw_perhaps","phr_(NP SYM)","X..4","X..5","phr_(X NN)","fw_wouldn.t","phr_(NX PP)","phr_(FRAG WHADJP)","fw_yourself","phr_(ADVP ADJP)","X..12","fw_though","fw_down")
 
-setwd("C:\\Users\\m_pis\\Documents\\Parsed data")
 
 ##Dataframe at a time merge with the author list
 dfMain=fread("RC_2017-02_combinedFeaturesSubset1.csv")
@@ -592,7 +572,6 @@ for(i in 100000:nrow(ho_set)){
   print(i)
   j=j+1}
 
-setwd("C:\\Users\\m_pis\\Documents\\SoDA502results")
 
 write.csv(dfOut,file="subset5000w.csv")
 
@@ -604,7 +583,7 @@ write.csv(dfOut,file="subset5000w.csv")
 
 
 ##Read in subset of 8000 words
-setwd("C:\\Users\\m_pis\\Documents\\502Subsets")
+
 
 df=fread("RC_8000w_subset.csv")
 names="id"
@@ -613,7 +592,6 @@ df=subset(df, select=names)
 
 names150=c("author","id","lego_2","i","x","lego_3","word_1","s","e","m","r","lego_5","w","v","l","word_7","word_8","p","word_6","phr_(SINV FRAG)","h","pos_DT","y","phr_(NP DT)","lego_4","word_2","q","g","pos_LS","phr_(S VP)","X..16","word_3","word_9","X2","k","pos_JJ","phr_(NP JJ)","X0","pos_EX","phr_(NP EX)","t","phr_(PP NNS)","pos_SYM","j","phr_(PP WHNP)","phr_(VP UCP)","word_10","lego_6","pos_MD","f","word_11","word_5","pos_VBP","phr_(VP VBP)","pos_POS","phr_(VP WHNP)","o","phr_(NP POS)","z","phr_(ADVP SYM)","phr_(NP NNS)","pos_WP$","phr_(WHADJP WP)","word_12","fw_very","X..14","X..10","pos_WRB","phr_(WHADJP WRB)","pos_FW","other_case","phr_(NP RRC)","pos_PRP$","phr_(NP PRP$)","phr_(VP NP)","pos_VBG","word_13","fw_haven.t","fw_mine","phr_(ADJP NNP)","pos_VBZ","pos_WDT","phr_(VP VBZ)","fw_whose","phr_(WHADJP JJ)","lego_7","fw_on","pos_RP","phr_(VP VBG)","phr_(NP RP)","fw_.re","pos_WP","word_14","phr_(VP INTJ)","pos_PDT","fw_together","phr_(VP POS)","phr_(WHADJP RB)","phr_(VP VB)","fw_in","fw_after","fw_yet","phr_(S NP)","pos_IN","phr_(NP IN)","n","lego_8","phr_(NP FW)","fw_them","phr_(S FRAG)","phr_(PP VBN)","phr_(ADJP SYM)","fw_by","X..23","phr_(VP LS)","word_15","fw_when","X1","fw_until","fw_the","fw_before","fw_ever","fw_inside","fw_was","fw_mayn.t","fw_here","fw_always","phr_(S ADVP)","fw_about","pos_VB","phr_(WHADJP ADJP)","phr_(NP INTJ)","phr_(X CC)","phr_(QP CD)","pos_NNS","phr_(S ADJP)","X..15","fw_itself","word_4","fw_perhaps","phr_(NP SYM)","X..4","X..5","phr_(X NN)","fw_wouldn.t","phr_(NX PP)","phr_(FRAG WHADJP)","fw_yourself","phr_(ADVP ADJP)","X..12","fw_though","fw_down")
 
-setwd("C:\\Users\\m_pis\\Documents\\Parsed data")
 
 ##Dataframe at a time merge with the author list
 dfMain=fread("RC_2017-02_combinedFeaturesSubset1.csv")
@@ -754,7 +732,5 @@ for(i in 100001:nrow(ho_set)){
   print(i)
   j=j+1}
 
-
-setwd("C:\\Users\\m_pis\\Documents\\SoDA502results")
 
 write.csv(dfOut,file="subset8000w.csv")
