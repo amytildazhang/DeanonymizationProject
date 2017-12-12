@@ -1,8 +1,6 @@
 ##Merging parsed features
 library(data.table)
 library(ff)
-setwd("C:\\Users\\m_pis\\Documents\\Parsed data")
-
 
 df=read.csv.ffdf(file="RC_2017-02_features.csv", header=TRUE, VERBOSE=TRUE, first.rows=10000, next.rows=50000, colClasses=NA)
 
