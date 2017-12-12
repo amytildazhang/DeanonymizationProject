@@ -12,14 +12,10 @@ import re
 from pycorenlp import StanfordCoreNLP
 nlp = StanfordCoreNLP('http://localhost:9000')
 
-##Changing directory to a folder with all reddit files that should be included
-cd "C:/Users/m_pis/Dropbox/Documents/SoDA 502/project/reddit data"
-
 
 ##Finding files and adding it to a list of all Reddit Comments
 files=glob.glob("*.bz2")
 
-subreddits="nfl"
 
 partsOfSpeech=("NN","PRP","CC","CD","DT","EX","FW","IN","JJ","JJR","JJS","LS","MD","NNS","NNP","NNPS","PDT","POS","PRP$","RB","RBR","RBS","RP","SYM","TO","UH","VB","VBD","VBG","VBN","VBP","VBZ","WDT","WP","WP$","WRB")
 
